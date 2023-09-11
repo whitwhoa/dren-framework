@@ -1,0 +1,100 @@
+<?php
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// For development. Comment these out for production
+/////////////////////////////////////////////////////////////////////////////////////////
+//ini_set('display_errors', 1);
+//ini_set('display_startup_errors', 1);
+//error_reporting(E_ALL);
+//ini_set('log_errors', 1);
+//ini_set('error_log', '/var/www/dren-example/job_errors.log');
+/////////////////////////////////////////////////////////////////////////////////////////
+
+$privateDirectory = __DIR__;
+require $privateDirectory . '/vendor/autoload.php';
+
+
+use Dren\App;
+use Dren\JobExecutor;
+
+App::initCli($privateDirectory);
+$jobExecutor = new JobExecutor();
+
+if($argc > 1)
+{
+    // Single call to a single job, without passing data
+    if($argc === 2)
+    {
+        $className = $jobExecutor->verifyClassName($argv[1]);
+        if($className === false)
+            exit(1);
+
+        try
+        {
+            $job = new $className();
+
+            if($job->isConcurrent())
+                $jobExecutor->runConcurrent($job);
+            else
+                $jobExecutor->runSequential($job);
+
+            exit(0);
+        }
+        catch(Exception $e)
+        {
+            $jobExecutor->handleJobFailure($e->getMessage() . ":" . $e->getTraceAsString());
+            exit(1);
+        }
+    }
+
+    // If we've made it here, this is either a call to a single job passing a string of data, or a call to multiple jobs
+    // each must contain a string of data, if no data necessary, an empty string must be provided
+    $jobExecutor->verifyArgumentCount($argc);
+
+    // loop through all the class names in the aggregate and confirm valid before proceeding. This allows us to not execute
+    // any of the aggregate jobs if a bad job name is provided for any of them
+    $agClassNames = [];
+    $agData = [];
+    for ($i = 1; $i < $argc; $i += 2)
+    {
+        $className = $jobExecutor->verifyClassName($argv[$i]);
+        if ($className === false)
+            exit(1);
+
+        $agClassNames[] = $className;
+        $agData[] = $argv[$i+1];
+    }
+
+    // Execute each job
+    try
+    {
+        $executionLog = [];
+        for ($i = 0; $i < count($agClassNames); $i++)
+        {
+            $className = $agClassNames[$i];
+            $classData = $agData[$i];
+
+            $job = new $className(json_decode($classData));
+
+            $jobRunStatus = false;
+            if($job->isConcurrent())
+                $jobRunStatus = $jobExecutor->runConcurrent($job);
+            else
+                $jobRunStatus = $jobExecutor->runSequential($job);
+
+            if(!$jobRunStatus)
+            {
+                $executionLog[] = ["job" => $className, "data" => $classData, "status" => 'failed'];
+                if(count($executionLog) > 1)
+                    throw new Exception("Execution of aggregate job failed: " . json_encode($executionLog));
+            }
+
+            $executionLog[] = ["job" => $className, "data" => $classData, "status" => 'success'];
+        }
+    }
+    catch(Exception $e)
+    {
+        $jobExecutor->handleJobFailure($e->getMessage() . ":" . $e->getTraceAsString());
+        exit(1);
+    }
+}

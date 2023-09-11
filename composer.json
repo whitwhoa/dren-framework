@@ -1,0 +1,35 @@
+{
+    "name": "dren-framework/dren-framework",
+    "description": "Project structure for Dren PHP framework",
+    "license": "MIT",
+    "type": "project",
+	"repositories": [
+		{
+			"type": "path",
+			"url": "/development/drenphp"
+		}
+	],
+    "require": {
+        "php": ">=8.1.0",
+		"whitwhoa/drenphp": "@dev"
+    },
+    "require-dev": {},
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "files":[]
+    },
+    "autoload-dev": {
+        "psr-4": {}
+    },
+    "extra": {},
+    "scripts": {},
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
