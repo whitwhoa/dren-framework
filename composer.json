@@ -1,17 +1,17 @@
 {
-    "name": "dren-framework/dren-framework",
+    "name": "whitwhoa/dren-framework",
     "description": "Project structure for Dren PHP framework",
     "license": "MIT",
     "type": "project",
 	"repositories": [
 		{
-			"type": "path",
-			"url": "/development/drenphp"
+			"type": "vcs",
+			"url": "https://github.com/whitwhoa/drenphp.git"
 		}
 	],
     "require": {
         "php": ">=8.1.0",
-		"whitwhoa/drenphp": "@dev"
+		"whitwhoa/drenphp": "dev-master"
     },
     "require-dev": {},
     "autoload": {

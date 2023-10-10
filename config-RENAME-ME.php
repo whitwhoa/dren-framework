@@ -95,5 +95,12 @@ return [
         'image/png' => 'png',
         'image/gif' => 'gif',
         'image/bmp' => 'bmp'
+    ],
+	
+	// defined as an array<string, mixed> in AppConfig. Store your application specific configuration variables here
+	'user_defined' => [
+
+        
+
     ]
 ];
